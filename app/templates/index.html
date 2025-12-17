@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>HacoPita 箱ID推定</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin: 2rem;
+      }
+      form {
+        margin-top: 1rem;
+        padding: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 320px;
+      }
+      button {
+        margin-top: 1rem;
+        padding: 0.5rem 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>HacoPita — 箱ID推定</h1>
+    <p>CSV をアップロードすると、box_id の推定結果を追記した CSV をダウンロードできます。</p>
+    <form action="/predict" method="post" enctype="multipart/form-data">
+      <label for="file">CSV を選択:</label><br />
+      <input type="file" name="file" id="file" accept=".csv" required />
+      <button type="submit">推定を実行</button>
+    </form>
+  </body>
+</html>

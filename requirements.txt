@@ -1,0 +1,16 @@
+azureml-defaults==1.61.0
+azureml-interpret==1.61.0
+azureml-train-automl-runtime==1.61.0
+fastapi==0.110.1
+holidays==0.86
+inference-schema==1.5.0
+jinja2==3.1.4
+joblib==1.4.2
+numpy==1.23.5
+pandas==1.5.3
+prophet==1.1.4
+psutil==5.9.3
+python-multipart==0.0.9
+scikit-learn==1.5.1
+uvicorn[standard]==0.27.1
+xgboost==1.5.2
