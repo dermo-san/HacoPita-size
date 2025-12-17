@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-import io
 import logging
+import os
+import re
 from pathlib import Path
+from urllib.parse import quote
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import HTMLResponse, StreamingResponse
@@ -19,6 +21,26 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="HacoPita box id predictor")
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
+
+
+def _ascii_safe_filename(name: str, default: str = "predictions.csv") -> str:
+    base = os.path.basename(name or "")
+    if not base:
+        return default
+
+    stem, ext = os.path.splitext(base)
+    ext = ext if ext else ".csv"
+
+    stem_ascii = re.sub(r"[^A-Za-z0-9._-]+", "_", stem).strip("._-")
+    if not stem_ascii:
+        stem_ascii = "predictions"
+
+    return f"{stem_ascii}{ext}"
+
+
+def _content_disposition(original_filename: str, fallback_ascii: str) -> str:
+    quoted = quote(original_filename)
+    return f'attachment; filename="{fallback_ascii}"; filename*=UTF-8\'\'{quoted}'
 
 
 @app.get("/healthz")
@@ -54,11 +76,15 @@ async def predict(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail="Prediction failed.") from exc
 
     csv_bytes = result_df.to_csv(index=False).encode("utf-8-sig")
-    original_name = Path(file.filename or "predictions").stem or "predictions"
-    download_name = f"{original_name}_with_predictions.csv"
-    headers = {"Content-Disposition": f'attachment; filename="{download_name}"'}
+    orig = file.filename or "input.csv"
+    download_orig = orig.rsplit(".", 1)[0] + "_with_predictions.csv"
+
+    fallback = _ascii_safe_filename(download_orig, default="predictions_with_predictions.csv")
+    cd = _content_disposition(download_orig, fallback)
+    headers = {"Content-Disposition": cd}
+
     return StreamingResponse(
-        io.BytesIO(csv_bytes),
+        iter([csv_bytes]),
         media_type="text/csv",
         headers=headers,
     )
